@@ -6,9 +6,11 @@ COPY package*.json ./
 
 RUN npm install --legacy-peer-deps
 
+RUN npm install -g typescript
+
 COPY . .
 
-RUN npx tsc --outDir dist
+RUN tsc --outDir dist
 
 EXPOSE 3000
 
