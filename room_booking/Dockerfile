@@ -8,7 +8,7 @@ RUN npm install --legacy-peer-deps
 
 COPY . .
 
-RUN node node_modules/@nestjs/cli/bin/nest.js build
+RUN npx tsc --outDir dist
 
 EXPOSE 3000
 
