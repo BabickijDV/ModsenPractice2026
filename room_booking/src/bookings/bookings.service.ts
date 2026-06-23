@@ -4,16 +4,17 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { BookingStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import {
-  CreateBookingDto,
-  BookingsQueryDto,
-  RoomAvailabilityQueryDto,
+  CreateBookingDto, BookingsQueryDto, RoomAvailabilityQueryDto,
 } from './dto/booking.dto';
 
-const MIN_DURATION_MS = 15 * 60 * 1000;       //15мин
-const MAX_DURATION_MS = 8 * 60 * 60 * 1000;   //8ч
+import { Logger } from '@nestjs/common';
+
+const MIN_DURATION_MS = 15 * 60 * 1000;       
+const MAX_DURATION_MS = 8 * 60 * 60 * 1000;  
 
 @Injectable()
 export class BookingsService {
+  private readonly logger = new Logger(BookingsService.name);
   constructor(private prisma: PrismaService) {}
 
   async create(userId: string, dto: CreateBookingDto) {
@@ -187,7 +188,7 @@ export class BookingsService {
     });
 
     if (result.count > 0) {
-      console.log(`[Scheduler] Completed ${result.count} expired booking(s)`);
+      this.logger.log(`Completed ${result.count} expired booking(s)`);
     }
   }
 

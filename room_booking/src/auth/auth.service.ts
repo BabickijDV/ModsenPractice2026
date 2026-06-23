@@ -5,6 +5,9 @@ import * as argon2 from 'argon2';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto, LoginDto } from './dto/auth.dto';
 
+import { AUTH_ERRORS } from './auth.constants';
+import { User } from '@prisma/client';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -18,7 +21,7 @@ export class AuthService {
     });
 
     if (existing) {
-      throw new ConflictException('User with this email already exists');
+      throw new ConflictException(AUTH_ERRORS.EMAIL_TAKEN);
     }
 
     const passwordHash = await argon2.hash(dto.password);
@@ -46,13 +49,13 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException(AUTH_ERRORS.INVALID_CREDENTIALS);
     }
 
     const passwordValid = await argon2.verify(user.passwordHash, dto.password);
 
     if (!passwordValid) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException(AUTH_ERRORS.INVALID_CREDENTIALS);
     }
 
     const token = this.generateToken(user.id, user.email);
@@ -67,7 +70,7 @@ export class AuthService {
     return this.jwtService.sign({ sub: userId, email });
   }
 
-  private sanitizeUser(user: any) {
+  private sanitizeUser(user:  User) {
     const { passwordHash, ...rest } = user;
     return rest;
   }

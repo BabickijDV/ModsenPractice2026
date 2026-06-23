@@ -6,12 +6,14 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
+import { JWT_EXPIRES_IN } from './auth.constants';
+
 @Module({
   imports: [
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET ?? 'secret',
-      signOptions: { expiresIn: '7d' },
+      signOptions: { expiresIn: JWT_EXPIRES_IN },
     }),
   ],
   providers: [AuthService, JwtStrategy, JwtAuthGuard],

@@ -1,10 +1,6 @@
 import { Controller, Get, Post, Patch, Body, Param, Query, UseGuards, ParseUUIDPipe,
 } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiTags,
-  ApiParam,
+import { ApiBearerAuth, ApiOperation, ApiTags, ApiParam,
 } from '@nestjs/swagger';
 import { BookingsService } from './bookings.service';
 import {
@@ -32,7 +28,7 @@ export class BookingsController {
   }
 
   @Get('my')
-  @ApiOperation({ summary: 'vjb ,hjyb' })
+  @ApiOperation({ summary: 'мои брони' })
   findMy(
     @CurrentUser('id') userId: string,
     @Query() query: BookingsQueryDto,
@@ -51,22 +47,4 @@ export class BookingsController {
   }
 }
 
-import { Controller as NestController } from '@nestjs/common';
 
-@ApiTags('Rooms')
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
-@NestController('rooms/:roomId/availability')
-export class RoomAvailabilityController {
-  constructor(private bookingsService: BookingsService) {}
-
-  @Get()
-  @ApiOperation({ summary: 'занятость комнаты за какое-то время' })
-  @ApiParam({ name: 'roomId', type: String })
-  getAvailability(
-    @Param('roomId', ParseUUIDPipe) roomId: string,
-    @Query() query: RoomAvailabilityQueryDto,
-  ) {
-    return this.bookingsService.getRoomAvailability(roomId, query);
-  }
-}

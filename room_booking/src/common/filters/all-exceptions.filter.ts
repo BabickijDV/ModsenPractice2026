@@ -1,18 +1,23 @@
-import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus,
+import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus, Logger,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 
+const DEFAULT_STATUS = HttpStatus.INTERNAL_SERVER_ERROR;
+const DEFAULT_ERROR = 'Internal Server Error';
+const DEFAULT_MESSAGE = 'An unexpected error occurred';
+
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
+  private readonly logger = new Logger(AllExceptionsFilter.name);
+
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
-    let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-    let error = 'Internal Server Error';
-    let message: string | string[] = 'An unexpected error occurred';
-    let details: any = undefined;
+    let statusCode = DEFAULT_STATUS;
+    let error = DEFAULT_ERROR;
+    let message: string | string[] = DEFAULT_MESSAGE;
 
     if (exception instanceof HttpException) {
       statusCode = exception.getStatus();
@@ -25,15 +30,15 @@ export class AllExceptionsFilter implements ExceptionFilter {
         const resObj = res as any;
         message = resObj.message ?? exception.message;
         error = resObj.error ?? exception.name;
-        details = resObj.details ?? undefined;
       }
+    } else {
+      this.logger.error('Unhandled exception', exception);
     }
 
     response.status(statusCode).json({
       statusCode,
       error,
       message,
-      details,
       path: request.url,
       timestamp: new Date().toISOString(),
     });
