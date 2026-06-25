@@ -3,7 +3,6 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { JwtStrategy } from './jwt.strategy';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
 import { JWT_EXPIRES_IN } from './auth.constants';
@@ -16,7 +15,7 @@ import { JWT_EXPIRES_IN } from './auth.constants';
       signOptions: { expiresIn: JWT_EXPIRES_IN },
     }),
   ],
-  providers: [AuthService, JwtStrategy, JwtAuthGuard],
+  providers: [AuthService, JwtAuthGuard],
   controllers: [AuthController],
   exports: [JwtAuthGuard],
 })
