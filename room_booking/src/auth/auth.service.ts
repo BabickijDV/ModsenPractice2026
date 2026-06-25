@@ -1,12 +1,13 @@
+// src/auth/auth.service.ts
 import { Injectable, ConflictException, UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
+import { User } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto, LoginDto } from './dto/auth.dto';
-
-import { AUTH_ERRORS } from './auth.constants';
-import { User } from '@prisma/client';
+import { JWT_ACCESS_SECRET, JWT_REFRESH_SECRET, AUTH_ERRORS,
+} from './auth.constants';
 
 @Injectable()
 export class AuthService {
@@ -35,11 +36,11 @@ export class AuthService {
       },
     });
 
-    const token = this.generateToken(user.id, user.email);
+    const tokens = await this.generateTokenPair(user.id, user.email);
 
     return {
-      accessToken: token,
-      user: this.sanitizeUser(user),
+      ...tokens,
+      user: this.sanitize(user),
     };
   }
 
@@ -58,19 +59,73 @@ export class AuthService {
       throw new UnauthorizedException(AUTH_ERRORS.INVALID_CREDENTIALS);
     }
 
-    const token = this.generateToken(user.id, user.email);
+    const tokens = await this.generateTokenPair(user.id, user.email);
 
     return {
-      accessToken: token,
-      user: this.sanitizeUser(user),
+      ...tokens,
+      user: this.sanitize(user),
     };
   }
 
-  private generateToken(userId: string, email: string) {
-    return this.jwtService.sign({ sub: userId, email });
+  async refresh(userId: string, refreshTokenId: string) {
+    await this.prisma.refreshToken.update({
+      where: { id: refreshTokenId },
+      data: { isRevoked: true },
+    });
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    const tokens = await this.generateTokenPair(user.id, user.email);
+
+    return {
+      ...tokens,
+      user: this.sanitize(user),
+    };
   }
 
-  private sanitizeUser(user:  User) {
+  async logout(refreshTokenId: string) {
+    await this.prisma.refreshToken.update({
+      where: { id: refreshTokenId },
+      data: { isRevoked: true },
+    });
+
+    return { message: 'Logged out successfully' };
+  }
+
+  private async generateTokenPair(userId: string, email: string) {
+    const accessToken = this.jwtService.sign(
+      { sub: userId, email },
+      {
+        secret: JWT_ACCESS_SECRET,
+        expiresIn: '15m' as any,
+      },
+    );
+
+    const refreshToken = this.jwtService.sign(
+      { sub: userId },
+      {
+        secret: JWT_REFRESH_SECRET,
+        expiresIn: '7d' as any,
+      },
+    );
+
+    const decoded = this.jwtService.decode(refreshToken) as { exp: number };
+    const expiresAt = new Date(decoded.exp * 1000);
+
+    await this.prisma.refreshToken.create({
+      data: {
+        token: refreshToken,
+        userId,
+        expiresAt,
+      },
+    });
+
+    return { accessToken, refreshToken };
+  }
+
+  private sanitize(user: User) {
     const { passwordHash, ...rest } = user;
     return rest;
   }
