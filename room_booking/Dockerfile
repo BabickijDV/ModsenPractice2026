@@ -10,7 +10,7 @@ RUN npm install -g typescript
 
 COPY . .
 
-RUN tsc --outDir dist
+RUN npm run build
 
 EXPOSE 3000
 
