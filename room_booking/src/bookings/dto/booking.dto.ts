@@ -1,4 +1,4 @@
-import { IsString, IsUUID, IsDateString, MinLength, MaxLength,IsOptional,IsInt,Min,Max,IsEnum,
+import { IsString, IsUUID, IsDateString, MinLength, MaxLength, IsOptional, IsInt, Min, Max, IsEnum,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
@@ -7,21 +7,21 @@ import { BookingStatus } from '@prisma/client';
 export class CreateBookingDto {
   @ApiProperty()
   @IsUUID()
-  roomId: string;
+  roomId!: string;
 
   @ApiProperty()
   @IsDateString()
-  startTime: string;
+  startTime!: string;
 
   @ApiProperty()
   @IsDateString()
-  endTime: string;
+  endTime!: string;
 
   @ApiProperty()
   @IsString()
   @MinLength(2)
   @MaxLength(200)
-  title: string;
+  title!: string;
 }
 
 export class BookingsQueryDto {
@@ -40,7 +40,7 @@ export class BookingsQueryDto {
   @Max(100)
   limit?: number = 10;
 
-  @ApiPropertyOptional({ description: 'фильтр по дате'})
+  @ApiPropertyOptional({ description: 'фильтр по дате' })
   @IsOptional()
   @IsString()
   date?: string;
@@ -67,11 +67,11 @@ export class BookingsQueryDto {
 }
 
 export class RoomAvailabilityQueryDto {
-  @ApiProperty({ description: 'начало'})
+  @ApiProperty({ description: 'начало' })
   @IsDateString()
-  from: string;
+  from!: string;
 
-  @ApiProperty({ description: 'конец'})
+  @ApiProperty({ description: 'конец' })
   @IsDateString()
-  to: string;
+  to!: string;
 }
