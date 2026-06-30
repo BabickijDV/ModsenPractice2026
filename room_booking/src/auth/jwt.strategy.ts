@@ -1,4 +1,3 @@
-
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
@@ -11,7 +10,7 @@ export class JwtAccessStrategy extends PassportStrategy(Strategy, 'jwt-access') 
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: JWT_ACCESS_SECRET,
+      secretOrKey: JWT_ACCESS_SECRET as string,
     });
   }
 
@@ -19,11 +18,9 @@ export class JwtAccessStrategy extends PassportStrategy(Strategy, 'jwt-access') 
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
     });
-
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
-
     return user;
   }
 }
