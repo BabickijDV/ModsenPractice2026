@@ -67,7 +67,6 @@ export class AuthService {
       where: { id: userId },
     });
 
-    // Явная проверка на null — удовлетворяет строгому режиму TypeScript
     if (!user) {
       throw new NotFoundException(AUTH_ERRORS.USER_NOT_FOUND);
     }
