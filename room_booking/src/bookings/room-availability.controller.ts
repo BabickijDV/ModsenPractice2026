@@ -15,7 +15,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 @NestController('rooms/:roomId/availability')
 export class RoomAvailabilityController {
   constructor(private bookingsService: BookingsService) {}
-ghjhjujgfuhg
+
   @Get()
   @ApiOperation({ summary: 'занятость комнаты за какое-то время' })
   @ApiParam({ name: 'roomId', type: String })

@@ -1,4 +1,4 @@
-// src/auth/auth.service.ts
+
 import { Injectable, ConflictException, UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -6,8 +6,9 @@ import * as argon2 from 'argon2';
 import { User } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto, LoginDto } from './dto/auth.dto';
-import { JWT_ACCESS_SECRET, JWT_REFRESH_SECRET, AUTH_ERRORS,
+import { JWT_ACCESS_SECRET, JWT_REFRESH_SECRET, AUTH_ERRORS, JWT_ACCESS_EXPIRES_IN, JWT_REFRESH_EXPIRES_IN,
 } from './auth.constants';
+import { JwtSignOptions } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
@@ -95,31 +96,24 @@ export class AuthService {
   }
 
   private async generateTokenPair(userId: string, email: string) {
-    const accessToken = this.jwtService.sign(
-      { sub: userId, email },
-      {
-        secret: JWT_ACCESS_SECRET,
-        expiresIn: '15m' as any,
-      },
-    );
+    const accessOptions: JwtSignOptions = {
+      secret: JWT_ACCESS_SECRET,
+      expiresIn: JWT_ACCESS_EXPIRES_IN as JwtSignOptions['expiresIn'],
+    };
 
-    const refreshToken = this.jwtService.sign(
-      { sub: userId },
-      {
-        secret: JWT_REFRESH_SECRET,
-        expiresIn: '7d' as any,
-      },
-    );
+    const refreshOptions: JwtSignOptions = {
+      secret: JWT_REFRESH_SECRET,
+      expiresIn: JWT_REFRESH_EXPIRES_IN as JwtSignOptions['expiresIn'],
+    };
+
+    const accessToken = this.jwtService.sign({ sub: userId, email }, accessOptions);
+    const refreshToken = this.jwtService.sign({ sub: userId }, refreshOptions);
 
     const decoded = this.jwtService.decode(refreshToken) as { exp: number };
     const expiresAt = new Date(decoded.exp * 1000);
 
     await this.prisma.refreshToken.create({
-      data: {
-        token: refreshToken,
-        userId,
-        expiresAt,
-      },
+      data: { token: refreshToken, userId, expiresAt },
     });
 
     return { accessToken, refreshToken };

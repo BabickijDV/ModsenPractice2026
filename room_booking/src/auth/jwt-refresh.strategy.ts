@@ -17,25 +17,27 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
   }
 
   async validate(req: any, payload: { sub: string }) {
-    const refreshToken = req.body?.refreshToken;
+  const refreshToken = req.body?.refreshToken;
 
-    const tokenRecord = await this.prisma.refreshToken.findUnique({
-      where: { token: refreshToken },
-      include: { user: true },
-    });
+  const tokenRecord = await this.prisma.refreshToken.findUnique({
+    where: { token: refreshToken },
+  });
 
-    if (!tokenRecord) {
-      throw new UnauthorizedException(AUTH_ERRORS.INVALID_REFRESH_TOKEN);
-    }
-
-    if (tokenRecord.isRevoked) {
-      throw new UnauthorizedException(AUTH_ERRORS.REFRESH_TOKEN_REVOKED);
-    }
-
-    if (tokenRecord.expiresAt < new Date()) {
-      throw new UnauthorizedException(AUTH_ERRORS.REFRESH_TOKEN_EXPIRED);
-    }
-
-    return { ...tokenRecord.user, refreshTokenId: tokenRecord.id };
+  if (!tokenRecord) {
+    throw new UnauthorizedException(AUTH_ERRORS.INVALID_REFRESH_TOKEN);
   }
+
+  if (tokenRecord.isRevoked) {
+    throw new UnauthorizedException(AUTH_ERRORS.REFRESH_TOKEN_REVOKED);
+  }
+
+  if (tokenRecord.expiresAt < new Date()) {
+    throw new UnauthorizedException(AUTH_ERRORS.REFRESH_TOKEN_EXPIRED);
+  }
+
+  return {
+    id: tokenRecord.userId,
+    refreshTokenId: tokenRecord.id,
+  };
+}
 }
