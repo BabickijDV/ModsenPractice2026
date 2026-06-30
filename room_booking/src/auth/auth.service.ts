@@ -88,4 +88,26 @@ export class AuthService {
   }
 
   private async generateTokenPair(userId: string, email: string) {
-    const
+    const accessOptions: JwtSignOptions = {
+      secret: JWT_ACCESS_SECRET,
+      expiresIn: JWT_ACCESS_EXPIRES_IN as JwtSignOptions['expiresIn'],
+    };
+    const refreshOptions: JwtSignOptions = {
+      secret: JWT_REFRESH_SECRET,
+      expiresIn: JWT_REFRESH_EXPIRES_IN as JwtSignOptions['expiresIn'],
+    };
+    const accessToken = this.jwtService.sign({ sub: userId, email }, accessOptions);
+    const refreshToken = this.jwtService.sign({ sub: userId }, refreshOptions);
+    const decoded = this.jwtService.decode(refreshToken) as { exp: number };
+    const expiresAt = new Date(decoded.exp * 1000);
+    await this.prisma.refreshToken.create({
+      data: { token: refreshToken, userId, expiresAt },
+    });
+    return { accessToken, refreshToken };
+  }
+
+  private sanitize(user: User) {
+    const { passwordHash, ...rest } = user;
+    return rest;
+  }
+}
