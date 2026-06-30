@@ -1,5 +1,4 @@
-
-import { Injectable, ConflictException, UnauthorizedException,
+import { Injectable, ConflictException, UnauthorizedException, NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
@@ -21,13 +20,10 @@ export class AuthService {
     const existing = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
-
     if (existing) {
       throw new ConflictException(AUTH_ERRORS.EMAIL_TAKEN);
     }
-
     const passwordHash = await argon2.hash(dto.password);
-
     const user = await this.prisma.user.create({
       data: {
         email: dto.email,
@@ -36,9 +32,7 @@ export class AuthService {
         lastName: dto.lastName,
       },
     });
-
     const tokens = await this.generateTokenPair(user.id, user.email);
-
     return {
       ...tokens,
       user: this.sanitize(user),
@@ -49,19 +43,14 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
-
     if (!user) {
       throw new UnauthorizedException(AUTH_ERRORS.INVALID_CREDENTIALS);
     }
-
     const passwordValid = await argon2.verify(user.passwordHash, dto.password);
-
     if (!passwordValid) {
       throw new UnauthorizedException(AUTH_ERRORS.INVALID_CREDENTIALS);
     }
-
     const tokens = await this.generateTokenPair(user.id, user.email);
-
     return {
       ...tokens,
       user: this.sanitize(user),
@@ -78,8 +67,12 @@ export class AuthService {
       where: { id: userId },
     });
 
-    const tokens = await this.generateTokenPair(user.id, user.email);
+    // Явная проверка на null — удовлетворяет строгому режиму TypeScript
+    if (!user) {
+      throw new NotFoundException(AUTH_ERRORS.USER_NOT_FOUND);
+    }
 
+    const tokens = await this.generateTokenPair(user.id, user.email);
     return {
       ...tokens,
       user: this.sanitize(user),
@@ -91,7 +84,6 @@ export class AuthService {
       where: { id: refreshTokenId },
       data: { isRevoked: true },
     });
-
     return { message: 'Logged out successfully' };
   }
 
@@ -100,22 +92,17 @@ export class AuthService {
       secret: JWT_ACCESS_SECRET,
       expiresIn: JWT_ACCESS_EXPIRES_IN as JwtSignOptions['expiresIn'],
     };
-
     const refreshOptions: JwtSignOptions = {
       secret: JWT_REFRESH_SECRET,
       expiresIn: JWT_REFRESH_EXPIRES_IN as JwtSignOptions['expiresIn'],
     };
-
     const accessToken = this.jwtService.sign({ sub: userId, email }, accessOptions);
     const refreshToken = this.jwtService.sign({ sub: userId }, refreshOptions);
-
     const decoded = this.jwtService.decode(refreshToken) as { exp: number };
     const expiresAt = new Date(decoded.exp * 1000);
-
     await this.prisma.refreshToken.create({
       data: { token: refreshToken, userId, expiresAt },
     });
-
     return { accessToken, refreshToken };
   }
 

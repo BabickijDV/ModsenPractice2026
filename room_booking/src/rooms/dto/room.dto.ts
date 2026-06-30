@@ -8,18 +8,18 @@ export class CreateRoomDto {
   @IsString()
   @MinLength(2)
   @MaxLength(100)
-  name: string;
+  name!: string;
 
   @ApiProperty()
   @IsInt()
   @Min(1)
   @Max(500)
-  capacity: number;
+  capacity!: number;
 
   @ApiProperty()
   @IsString()
   @MaxLength(255)
-  location: string;
+  location!: string;
 
   @ApiPropertyOptional()
   @IsOptional()

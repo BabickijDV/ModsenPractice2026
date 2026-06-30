@@ -21,7 +21,7 @@ export class RoomAvailabilityController {
   @ApiParam({ name: 'roomId', type: String })
   getAvailability(
     @Param('roomId', ParseUUIDPipe) roomId: string,
-    @Query() query: RoomAvailabilityQueryDto,hfguggh
+    @Query() query: RoomAvailabilityQueryDto,
   ) {
     return this.bookingsService.getRoomAvailability(roomId, query);
   }
