@@ -17,6 +17,7 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   bookings     Booking[]
+  refreshTokens RefreshToken[]
 
   @@map("users")
 }
@@ -48,7 +49,6 @@ model Booking {
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
-  @@index([roomId, startTime])
 
   @@map("bookings")
 }
@@ -57,4 +57,16 @@ enum BookingStatus {
   Active      
   Cancelled   
   Completed   
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  isRevoked Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("refresh_tokens")
 }
