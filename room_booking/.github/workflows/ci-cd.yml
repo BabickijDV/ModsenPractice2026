@@ -10,6 +10,9 @@ jobs:
   build:
     name: Install & Build
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: room_booking
 
     steps:
       - name: Checkout code
@@ -20,6 +23,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+          cache-dependency-path: room_booking/package-lock.json
 
       - name: Install dependencies
         run: npm ci

@@ -70,14 +70,6 @@ export class BookingsService {
         },
         include: {
           room: true,
-          user: {
-            select: {
-              id: true,
-              email: true,
-              firstName: true,
-              lastName: true,
-            },
-          },
         },
       });
     });
@@ -176,7 +168,7 @@ export class BookingsService {
     });
   }
 
-  @Cron(CronExpression.EVERY_MINUTE)//фоновая задача
+  @Cron(CronExpression.EVERY_MINUTE)
   async completeExpiredBookings() {
     const now = new Date();
     const result = await this.prisma.booking.updateMany({

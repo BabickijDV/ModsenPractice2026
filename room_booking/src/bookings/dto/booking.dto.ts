@@ -3,6 +3,7 @@ import { IsString, IsUUID, IsDateString, MinLength, MaxLength, IsOptional, IsInt
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { BookingStatus } from '@prisma/client';
+import { IsIn } from 'class-validator';
 
 export class CreateBookingDto {
   @ApiProperty()
@@ -57,7 +58,7 @@ export class BookingsQueryDto {
 
   @ApiPropertyOptional({ enum: ['startTime', 'status'], default: 'startTime' })
   @IsOptional()
-  @IsString()
+  @IsIn(['startTime', 'status'])
   sortBy?: 'startTime' | 'status' = 'startTime';
 
   @ApiPropertyOptional({ enum: ['asc', 'desc'], default: 'asc' })
